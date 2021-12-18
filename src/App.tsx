@@ -2,72 +2,72 @@ import { useState, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import classnames from "classnames";
 import Convertor from "./Convertor";
-import font from './font.json';
+import font from "./font.json";
 
 const useStyles = createUseStyles({
   App: {
-    fontFamily: "Courier New"
+    fontFamily: "Courier New",
   },
   container: {
     width: "100%",
     height: "100%",
     display: "flex",
     justifyContent: "center",
-    flexDirection: "column"
+    flexDirection: "column",
   },
   led: {
     height: 40,
     width: 40,
     border: "1px solid black",
     margin: 2,
-    background: "#fff"
+    background: "#fff",
   },
   strip: {
     display: "flex",
-    margin: 2
+    margin: 2,
   },
   pre: {
-    whiteSpace: "normal"
+    whiteSpace: "normal",
   },
   delayInput: {
     width: 60,
-    marginTop: 8
+    marginTop: 8,
   },
   frameButton: {},
   activeFrameButton: {
     background: "#000",
-    color: "#fff"
+    color: "#fff",
   },
   controls: {
     "& button": {
-      margin: "4px 4px 4px 0px"
-    }
+      margin: "4px 4px 4px 0px",
+    },
   },
   frameList: {
     marginTop: 8,
-    marginBottom: 4
+    marginBottom: 4,
   },
   paletteContainer: {
     marginTop: 8,
     marginBottom: 8,
     display: "flex",
-    alignItems: "center"
+    alignItems: "center",
   },
   colorInput: {
     height: 20,
     width: 20,
-    marginRight: 8
+    marginRight: 8,
   },
   paletteItem: {
     height: 20,
     width: 20,
     marginRight: 8,
-    borderRadius: "50%"
+    borderRadius: "50%",
   },
   addColorButton: {
     marginRight: 8,
-    height: 24
-  }
+    height: 24,
+  },
 });
 
 const ROWS = 8;
@@ -80,8 +80,11 @@ export const getLedNumberByXY = (x: number, y: number) => {
   return y % 2 === 0 ? reversed : ledNumber;
 };
 
-const getDefaultGrid = (activeLedNumbers: number[] = [], defaultColor = "#ff0000") => {
- return Array(ROWS)
+const getDefaultGrid = (
+  activeLedNumbers: number[] = [],
+  defaultColor = "#ff0000"
+) => {
+  return Array(ROWS)
     .fill([])
     .map((_, row) => {
       const leds = Array(COLUMNS)
@@ -90,40 +93,39 @@ const getDefaultGrid = (activeLedNumbers: number[] = [], defaultColor = "#ff0000
           const led = getLedNumberByXY(col, row);
           const on = activeLedNumbers?.includes(led);
           return {
-          on,
-          color: defaultColor,
-          led,
-        }});
+            on,
+            color: defaultColor,
+            led,
+          };
+        });
       return leds;
     });
-  }
+};
 
 const getDefaultFrame = () => {
   return {
     wait: 1000,
-    pattern: getDefaultGrid()
+    pattern: getDefaultGrid(),
   };
 };
 
 const getActiveLedsFromPattern = (pattern: any[]) => {
   return pattern
-  .reduce((acc, val) => acc.concat(val), [])
-  .filter((led:any) => led.on)
-  .map((led:any) => led.led)
-  .sort((a:number, b:number) => a - b)
-}
+    .reduce((acc, val) => acc.concat(val), [])
+    .filter((led: any) => led.on)
+    .map((led: any) => led.led)
+    .sort((a: number, b: number) => a - b);
+};
 
-const getPatternFromActiveLeds = (activeLedNumbers: number[], color?: string) => {
+const getPatternFromActiveLeds = (
+  activeLedNumbers: number[],
+  color?: string
+) => {
   return getDefaultGrid(activeLedNumbers, color);
-}
+};
 
 console.log(font);
-type Led = [
-  key: number,
-  r: number,
-  g: number,
-  b: number,
-];
+type Led = [key: number, r: number, g: number, b: number];
 
 const hexToRgb = (hex: string) => {
   const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
@@ -136,7 +138,7 @@ const hexToRgb = (hex: string) => {
     ? {
         r: parseInt(result[1], 16),
         g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
+        b: parseInt(result[3], 16),
       }
     : null;
 };
@@ -147,7 +149,7 @@ export default function App() {
   const [palette, setPalette] = useState<string[]>([]);
   const [frameNumber, setFrameNumber] = useState(0);
   const [animation, setAnimation] = useState([getDefaultFrame()]);
-  const [delay, setDelay] = useState(1000);
+  const [delay, setDelay] = useState(100);
   const [playing, setPlaying] = useState(false);
   // const [loopMode, setLoopMode] = useState(true);
   const interval = useRef<ReturnType<typeof setTimeout>>();
@@ -224,7 +226,9 @@ export default function App() {
           animation.length,
           animation[frameNumberRef.current].wait
         );
-        clearInterval(interval.current);
+        if (interval.current) {
+          clearTimeout(interval.current);
+        }
         animate(frameNumberRef.current);
       },
       startFrame === -1
@@ -240,23 +244,25 @@ export default function App() {
       setPlaying(true);
     } else {
       setPlaying(false);
-      clearInterval(interval.current);
+      if (interval.current) {
+        clearTimeout(interval.current);
+      }
     }
   };
 
   const findLetter = (e: React.ChangeEvent<HTMLInputElement>) => {
     const letter = e.target.value.toLowerCase();
-    if(letter in font) {
-      const activeLeds = (font as {[key: string]: number[]})[letter];
+    if (letter in font) {
+      const activeLeds = (font as { [key: string]: number[] })[letter];
       console.log(activeLeds);
-      if(activeLeds.length) {
+      if (activeLeds.length) {
         const newFrame = getDefaultFrame();
         newFrame.pattern = getDefaultGrid(activeLeds, activeColor);
         setAnimation([...animation, newFrame]);
         setFrameNumber(animation.length);
       }
     }
-  }
+  };
 
   // TODO
   const transformLedColor = (color: string) => {
@@ -401,9 +407,11 @@ export default function App() {
             />
           </div>
         )}
-        <pre>{
-          JSON.stringify(
-            getActiveLedsFromPattern(animation[frameNumber].pattern))}</pre>
+        <pre>
+          {JSON.stringify(
+            getActiveLedsFromPattern(animation[frameNumber].pattern)
+          )}
+        </pre>
       </div>
       {isOpen && (
         <Convertor onClose={() => setIsOpen(false)} onDecode={handleDecode} />
