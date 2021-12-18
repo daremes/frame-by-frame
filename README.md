@@ -1,2 +1,3 @@
 # frame-by-frame
-Created with CodeSandbox
+
+generate frame-by-frame animations using Arduino and 8 by 8 Neopixel strip
